@@ -1,5 +1,12 @@
 #-*- coding: utf-8 -*-
 from functools import wraps
+'''
+修饰器是 Python 语言的标准特性，可以使用不同的方式修改函数的行为。惯
+常用法是使用修饰器把函数注册为事件的处理程序.
+
+在 Python 代码中嵌入响应字符串会导致代码难以维护，此处这么做只是为了
+介绍响应的概念.
+'''
 
 def square_sum(func):
 
