@@ -176,6 +176,28 @@ def test_logit():
     test_logit3()
     test_logit4()
 ############################################################################################################
+
+# 这种语法也可以
+def echo_it1(prefix, *args, **kwargs):
+    def wrapped_function(f):
+        @wraps(f)
+        def inner_func(*args, **kwargs):
+            print('%s before call %s' % (prefix, f.__name__))
+            f(*args, **kwargs)
+
+        return inner_func
+
+    return wrapped_function
+        
+
+@echo_it1('lzc')
+def test_echo_it1():
+    print('real inner func.')
+
+def test_echo():
+    test_echo_it1()
+
+############################################################################################################
 class Logit(object):
     def __init__(self, logfile = 'out.log'):
         self.logfile = logfile
@@ -217,4 +239,5 @@ if __name__ == '__main__':
     #test_simple_decorator()
     #test_func()
     #test_logit()
-    test_Logit()
+    #test_Logit()
+    test_echo_it1()

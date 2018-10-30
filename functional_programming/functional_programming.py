@@ -146,14 +146,16 @@ def print_even_num():
 
     def pipeline_func(data, fns):
         return reduce(
-            lambda a, x : x(a), 
-            fns,
-            data
+            lambda a, x : x(a), # lambda 数据, 函数 : 函数(数据)
+            fns, # 函数
+            data # 数据
         )
 
     nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     fns = [even_filter, multiply_by_three, convert_to_string]
     print pipeline_func(nums, fns)
+
+	
 
 def test_map_reduce():
     #test_map_name_len()
@@ -168,6 +170,44 @@ def test_map_reduce():
 
 ############################## Map & Reduce END   ##############################
 
+############################## pipe  line START ################################
+class Pipe(object):
+    def __init__(self, func):
+        self.func = func
+ 
+    def __ror__(self, other):
+        def generator():
+            for obj in other:
+                if obj is not None:
+                    yield self.func(obj)
+        return generator()
+ 
+@Pipe
+def even_filter(num):
+    return num if num % 2 == 0 else None
+ 
+@Pipe
+def multiply_by_three(num):
+    return num*3
+ 
+@Pipe
+def convert_to_string(num):
+    return str(num)
+
+@Pipe
+def echo(item):
+    print item
+    return item
+
+def force(sqs):
+    for item in sqs: pass
+
+def test_pipline():
+	nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+	print force(nums | even_filter | multiply_by_three | convert_to_string)
+
+############################## pipe  line END ##################################
 if __name__ == '__main__':
     #test_inc()
-    test_map_reduce()
+    #test_map_reduce()
+	test_pipline()

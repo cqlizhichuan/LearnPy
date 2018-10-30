@@ -3,7 +3,6 @@ import time
 
 ############################## 1 修改类函数 START ##############################
 # 场景 : 如果要给一个类的所有方法加上计时, 并打印出来
-
 def time_it(fn):
     "Example of a method decorator"
     def decorator(*args, **kwargs):
@@ -92,14 +91,57 @@ def cd(cls):
 @cd
 class A(object):
     def __init__(self, name, age, sex='f'):
-        self.name=name
-        self.age=age
-        self.sex=sex
+        self.name = name
+        self.age = age
+        self.sex = sex
     def s(self):
         print(self.id)
 
 ############################## 3 增加类成员 END ################################
+class myDecorator(object):
+    def __init__(self, fn):
+        #print("inside myDecorator.__init__()")
+        self.fn = fn
+ 
+    def __call__(self):
+        self.fn()
+        print("inside myDecorator.__call__()")
+ 
+@myDecorator
+def aFunction():
+    print("__init__ is above me.")
+    print("inside aFunction()")
+
+def test_aFunction():
+    aFunction()
+
+class makeHtmlTagClass(object):
+ 
+    def __init__(self, tag, css_class=""):
+        self._tag = tag
+        self._css_class = " class='{0}'".format(css_class) \
+                                       if css_class !="" else ""
+ 
+    def __call__(self, fn):
+        def wrapped(*args, **kwargs):
+            y = fn(*args, **kwargs)
+            print("y is %s" % (y))
+            x =  "<" + self._tag + self._css_class+">"  \
+                       + fn(*args, **kwargs) + "</" + self._tag + ">"
+            print("%s was returned when call." % (x))
+            return x
+        return wrapped
+ 
+@makeHtmlTagClass(tag="b", css_class="bold_css")
+@makeHtmlTagClass(tag="i", css_class="italic_css")
+def use_html_tag_class(name):
+    return "Hello, {}".format(name)
+
+def test_html_tag_class():
+    print use_html_tag_class('lzc')
 
 if __name__ == "__main__":
     #test_decorated_class()
-    test_add_class_members()
+    #test_add_class_members()
+    #test_aFunction()
+    test_html_tag_class()
