@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import time
+from functools import wraps
 
 ############################## 1 修改类函数 START ##############################
 # 场景 : 如果要给一个类的所有方法加上计时, 并打印出来
@@ -123,15 +124,15 @@ class makeHtmlTagClass(object):
                                        if css_class !="" else ""
  
     def __call__(self, fn):
+        @wraps(fn)
         def wrapped(*args, **kwargs):
-            y = fn(*args, **kwargs)
-            print("y is %s" % (y))
+            print(fn.__name__)
             x =  "<" + self._tag + self._css_class+">"  \
                        + fn(*args, **kwargs) + "</" + self._tag + ">"
-            print("%s was returned when call." % (x))
+            print("%s was returned when call.\n" % (x))
             return x
         return wrapped
- 
+
 @makeHtmlTagClass(tag="b", css_class="bold_css")
 @makeHtmlTagClass(tag="i", css_class="italic_css")
 def use_html_tag_class(name):

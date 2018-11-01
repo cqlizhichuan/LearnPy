@@ -1,5 +1,10 @@
 #-*- coding: utf-8 -*-
+import inspect
+
 from functools import wraps
+from time import time, sleep
+from threading import Thread
+
 '''
 修饰器是 Python 语言的标准特性，可以使用不同的方式修改函数的行为。惯
 常用法是使用修饰器把函数注册为事件的处理程序.
@@ -232,7 +237,133 @@ def test_Logit():
     test_Logit2()
 
 ############################################################################################################
+def memo(fn):
+    cache = {}
+    miss = object()
+    @wraps(fn)
+    def wrapper(*args):
+        result = cache.get(args, miss)
+        if result is miss:
+            result = fn(*args)
+            cache[args] = result
+        return result
 
+    return wrapper
+
+@memo
+def fib(n):
+    if n >= 2:
+        return fib(n-1) + fib(n-2)
+    return n
+
+def fib1(n):
+    if n >= 2:
+        return fib1(n-1) + fib1(n-2)
+    return n
+
+def test_fib_with_cache():
+    '''
+    我们用decorator，在调用函数前查询一下缓存，如果没有缓存，才调用，
+    有了就从缓存中返回值。一下子，这个递归从二叉树式的递归成了线性的递归。
+    '''
+
+    #start = time()
+    print fib(10)
+    #middle = time()
+    #print('fib with cache cost %f' % (middle - start))
+    #print fib1(10)
+    #print('fib without cache cost %f' % (time() - middle))
+
+############################################################################################################
+class MyApp(object):
+    def __init__(self):
+        self.func_map = {}
+
+    def register(self, map_name):
+        def wrapper(fn):
+            if map_name not in self.func_map:
+                self.func_map.setdefault(map_name, fn)
+            return fn
+        return wrapper
+
+    def call_method(self, name):
+        if name not in self.func_map:
+            raise ValueError('Wrong url %s' % (name))
+
+        return self.func_map[name]()
+
+myapp = MyApp()
+
+@myapp.register('/')
+def myapp_root_func():
+    return 'This is root func'
+
+@myapp.register('/svm')
+def myapp_svm_func():
+    return 'This is svm func'
+
+def test_myapp():
+    print(myapp_root_func())
+    print(myapp_svm_func())
+
+############################################################################################################
+def advance_logger(loglevel):
+ 
+    def get_line_number():
+        return inspect.currentframe().f_back.f_back.f_lineno
+ 
+    def _basic_log(fn, result, *args, **kwargs):
+        print "function   = " + fn.__name__,
+        print "    arguments = {0} {1}".format(args, kwargs)
+        print "    return    = {0}".format(result)
+ 
+    def info_log_decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            result = fn(*args, **kwargs)
+            _basic_log(fn, result, args, kwargs)
+        return wrapper
+ 
+    def debug_log_decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            ts = time.time()
+            result = fn(*args, **kwargs)
+            te = time.time()
+            _basic_log(fn, result, args, kwargs)
+            print "    time      = %.6f sec" % (te-ts)
+            print "    called_from_line : " + str(get_line_number())
+        return wrapper
+ 
+    if loglevel is "debug":
+        return debug_log_decorator
+    else:
+        return info_log_decorator
+
+############################################################################################################
+def async(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        t = Thread(target = fn, 
+            args = args, kwargs = kwargs)
+        t.start()
+        return t
+
+    return wrapper
+
+def test_async():
+
+    @async
+    def do_something(x, N):
+        for i in range(N):
+            print('%d is doing...\n' % (x))
+            sleep(2)
+
+    N = 10
+    for i in range(N):
+        do_something(i, 10)
+        
+############################################################################################################
 if __name__ == '__main__':
     #test_sum_a()
     #test_sum_a_1()
@@ -240,4 +371,7 @@ if __name__ == '__main__':
     #test_func()
     #test_logit()
     #test_Logit()
-    test_echo_it1()
+    #test_echo_it1()
+    #test_fib_with_cache()
+    #test_myapp()
+    test_async()
