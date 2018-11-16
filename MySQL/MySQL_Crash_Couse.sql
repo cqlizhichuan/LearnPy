@@ -71,3 +71,64 @@ delimiter ;
 
 call order_total(20005, 0, @total);
 select @total;
+
+-- cursor --
+
+
+delimiter //
+create procedure process_orders()
+begin
+    
+    -- declare local variables
+    declare done boolean default 0;
+    declare o int;
+    declare t decimal(8, 2);
+    
+    -- declare the cursor
+    declare order_numbers cursor
+    for 
+    select order_num from orders;
+    
+    -- declare continue handler
+    declare continue handler for sqlstate '02000' set done = 1;
+    
+    create table if not exists order_totals
+    (order_num int, total decimal(8, 2));
+    
+    -- open the cursor
+    open order_numbers;
+    
+    -- loop through all rows
+    repeat
+        fetch order_numbers into o;
+        call order_total(o, 1, t);
+        insert into order_totals(order_num, total)
+        values (o, t);
+    until done end repeat;
+    
+    -- close the cursor
+    close order_numbers;
+end //
+delimiter ;
+
+-- trigger --
+
+-- Will got 'Not allowed to return a result set from a trigger'
+create trigger new_product after insert on products
+for each row select 'Product added';
+
+drop trigger new_product;
+
+create trigger neworder after insert on orders
+for each row select NEW.order_num;
+
+
+
+
+
+
+
+
+
+
+
