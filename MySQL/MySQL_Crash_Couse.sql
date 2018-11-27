@@ -248,13 +248,28 @@ drop trigger new_product;
 create trigger neworder after insert on orders
 for each row select NEW.order_num;
 
+-- transaction --
+-- rollback --
+select * from order_totals;
+start transaction;
+delete from order_totals;
+select * from order_totals;
+-- rollback 只能在一个事务处理内使用 --
+-- （在执行一条start transaction命令之后） --
+rollback;
+select * from order_totals;
 
 
+-- commit --
+start transaction;
+delete from orderitems where order_num = 20010;
+delete from orders where order_num = 20010;
+commit;
 
 
+-- savepoint --
+savepoint delete1;
+rollback to delete1;
+release delete1;
 
-
-
-
-
-
+-- index --
